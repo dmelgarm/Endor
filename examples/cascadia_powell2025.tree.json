@@ -1,0 +1,314 @@
+{
+  "schemaVersion": "1.0",
+  "metadata": {
+    "name": "Cascadia CSZ source logic tree (Sypus & Wang, 2024)",
+    "description": "First-draft encoding of Figure 4.1 from Sypus & Wang (2024), DOGAMI Open-File Report O-24-11, 'Improved Cascadia Earthquake Source Models for Tsunami Hazard Assessment' (USGS-NTHMP Cascadia Powell Center Tsunami Sources Working Group; refinements from H.K. Thio, 2024). Published branch weights are encoded as given. Splits the figure draws WITHOUT a weight use equal-weight PLACEHOLDERS so siblings sum to 1 (see metadata.placeholders) — these are NOT authoritative. The shared 'rupture-detail' subtree (Fig 4.1 p.26) is drawn once in the report and referenced from several parents; here it is defined once under DOGAMI > 'L' and stubbed elsewhere with marker leaves (value 'ref:rupture_detail') pending $ref subtree-reuse support.",
+    "author": "Endor (draft from Sypus & Wang 2024)",
+    "created": "2026-06-11",
+    "tags": ["subduction", "cascadia", "powell-center", "draft", "sypus-wang-2024"],
+    "source": "DOGAMI Open-File Report O-24-11, Figure 4.1 (pp. 25-27)",
+    "placeholders": "Equal-weight placeholder splits (no weight published in Fig 4.1): Whole-margin/Partial; average-slip XL/L/M/SM; aleatory magnitude +1sigma/mean-median/-1sigma; Cluster-M8 event count 2/3/4/5; segmented segments B/C/Cprime/D/F; segment size Long/Medium/Short; along-strike Seaward/Landward vergence; splay geometry D/B; taper-to-trench 50/100%; rupture shape up/sym/down; termination depth tremor/locked/midpoint; event-slip 3-/5-asperity; asperity position.",
+    "notes": "Recurrence values on the Floating branch are annual rates, not probabilities; they are carried in 'value' while the .25 epistemic weights are carried in 'weight'."
+  },
+  "tree": {
+    "parameter": "rupture_extent",
+    "label": "Cascadia rupture extent",
+    "branches": [
+      {
+        "label": "Whole margin",
+        "weight": 0.5,
+        "value": "whole_margin",
+        "node": {
+          "parameter": "source_model",
+          "label": "Source model branch",
+          "branches": [
+            {
+              "label": "DOGAMI",
+              "weight": 0.52,
+              "value": "dogami",
+              "node": {
+                "parameter": "average_slip",
+                "label": "Average slip from slip deficit (aleatory)",
+                "branches": [
+                  { "label": "XL", "weight": 0.25, "value": "XL", "node": { "parameter": "rupture_detail_ref", "label": "Rupture detail", "branches": [ { "label": "= rupture-detail subtree", "weight": 1, "value": "ref:rupture_detail" } ] } },
+                  {
+                    "label": "L",
+                    "weight": 0.25,
+                    "value": "L",
+                    "node": {
+                      "parameter": "along_strike_vergence",
+                      "label": "Along-strike vergence region",
+                      "branches": [
+                        {
+                          "label": "Seaward vergence",
+                          "weight": 0.5,
+                          "value": "seaward",
+                          "node": {
+                            "parameter": "rupture_type",
+                            "label": "Rupture type",
+                            "branches": [
+                              {
+                                "label": "Buried",
+                                "weight": 0.5,
+                                "value": "buried",
+                                "node": {
+                                  "parameter": "buried_depth",
+                                  "label": "Buried shallow or deep",
+                                  "branches": [
+                                    {
+                                      "label": "Deep",
+                                      "weight": 0.5,
+                                      "value": "deep",
+                                      "node": {
+                                        "parameter": "rupture_shape",
+                                        "label": "Shape",
+                                        "branches": [
+                                          {
+                                            "label": "Up skew",
+                                            "weight": 0.3333,
+                                            "value": "up_skew",
+                                            "node": {
+                                              "parameter": "termination_depth",
+                                              "label": "Termination at depth",
+                                              "branches": [
+                                                {
+                                                  "label": "Tremor",
+                                                  "weight": 0.3333,
+                                                  "value": "tremor",
+                                                  "node": {
+                                                    "parameter": "event_slip_distribution",
+                                                    "label": "Event slip distribution",
+                                                    "branches": [
+                                                      {
+                                                        "label": "3 asperity",
+                                                        "weight": 0.5,
+                                                        "value": "3_asperity",
+                                                        "node": {
+                                                          "parameter": "asperity_position",
+                                                          "label": "Asperity position",
+                                                          "branches": [
+                                                            { "label": "North", "weight": 0.3333, "value": "north" },
+                                                            { "label": "Center", "weight": 0.3334, "value": "center" },
+                                                            { "label": "South", "weight": 0.3333, "value": "south" }
+                                                          ]
+                                                        }
+                                                      },
+                                                      {
+                                                        "label": "5 asperity",
+                                                        "weight": 0.5,
+                                                        "value": "5_asperity",
+                                                        "node": {
+                                                          "parameter": "asperity_position",
+                                                          "label": "Asperity position",
+                                                          "branches": [
+                                                            { "label": "1", "weight": 0.2, "value": 1 },
+                                                            { "label": "2", "weight": 0.2, "value": 2 },
+                                                            { "label": "3", "weight": 0.2, "value": 3 },
+                                                            { "label": "4", "weight": 0.2, "value": 4 },
+                                                            { "label": "5", "weight": 0.2, "value": 5 }
+                                                          ]
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                },
+                                                { "label": "Locked zone", "weight": 0.3333, "value": "locked_zone" },
+                                                { "label": "Midpoint locked at 1cm locked", "weight": 0.3334, "value": "midpoint_locked" }
+                                              ]
+                                            }
+                                          },
+                                          { "label": "Symmetric", "weight": 0.3333, "value": "symmetric" },
+                                          { "label": "Down skew", "weight": 0.3334, "value": "down_skew" }
+                                        ]
+                                      }
+                                    },
+                                    { "label": "Shallow", "weight": 0.5, "value": "shallow" }
+                                  ]
+                                }
+                              },
+                              {
+                                "label": "Splay",
+                                "weight": 0.18,
+                                "value": "splay",
+                                "node": {
+                                  "parameter": "splay_geometry",
+                                  "label": "Splay geometry",
+                                  "branches": [
+                                    { "label": "Splay D", "weight": 0.5, "value": "splay_d" },
+                                    { "label": "Splay B (shallow)", "weight": 0.5, "value": "splay_b_shallow" }
+                                  ]
+                                }
+                              },
+                              {
+                                "label": "Trench break",
+                                "weight": 0.32,
+                                "value": "trench_break",
+                                "node": {
+                                  "parameter": "taper_to_trench",
+                                  "label": "Taper to trench",
+                                  "branches": [
+                                    { "label": "50%", "weight": 0.5, "value": 0.5 },
+                                    { "label": "100%", "weight": 0.5, "value": 1.0 }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "label": "Landward vergence and landslide areas",
+                          "weight": 0.5,
+                          "value": "landward",
+                          "node": {
+                            "parameter": "rupture_type",
+                            "label": "Rupture type",
+                            "branches": [
+                              { "label": "Buried", "weight": 0.63, "value": "buried" },
+                              {
+                                "label": "Splay",
+                                "weight": 0.21,
+                                "value": "splay",
+                                "node": {
+                                  "parameter": "splay_geometry",
+                                  "label": "Splay geometry",
+                                  "branches": [
+                                    { "label": "Splay D", "weight": 0.5, "value": "splay_d" },
+                                    { "label": "Splay B", "weight": 0.5, "value": "splay_b" }
+                                  ]
+                                }
+                              },
+                              {
+                                "label": "Trench break",
+                                "weight": 0.16,
+                                "value": "trench_break",
+                                "node": {
+                                  "parameter": "taper_to_trench",
+                                  "label": "Taper to trench",
+                                  "branches": [
+                                    { "label": "100%", "weight": 0.5, "value": 1.0 },
+                                    { "label": "50%", "weight": 0.5, "value": 0.5 }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  { "label": "M", "weight": 0.25, "value": "M", "node": { "parameter": "rupture_detail_ref", "label": "Rupture detail", "branches": [ { "label": "= rupture-detail subtree", "weight": 1, "value": "ref:rupture_detail" } ] } },
+                  { "label": "SM", "weight": 0.25, "value": "SM", "node": { "parameter": "rupture_detail_ref", "label": "Rupture detail", "branches": [ { "label": "= rupture-detail subtree", "weight": 1, "value": "ref:rupture_detail" } ] } }
+                ]
+              }
+            },
+            {
+              "label": "USGS",
+              "weight": 0.48,
+              "value": "usgs",
+              "node": {
+                "parameter": "rupture_mode",
+                "label": "Single rupture or cluster?",
+                "branches": [
+                  {
+                    "label": "Single rupture",
+                    "weight": 0.9,
+                    "value": "single_rupture",
+                    "node": {
+                      "parameter": "scaling_relation",
+                      "label": "Scaling relation",
+                      "branches": [
+                        { "label": "Papazachos", "weight": 0.25, "value": "papazachos", "node": { "parameter": "aleatory_magnitude", "label": "Aleatory magnitude", "branches": [ { "label": "+1σ", "weight": 0.3333, "value": "+1sigma" }, { "label": "mean/median", "weight": 0.3334, "value": "mean_median", "node": { "parameter": "rupture_detail_ref", "label": "Rupture detail", "branches": [ { "label": "= rupture-detail subtree", "weight": 1, "value": "ref:rupture_detail" } ] } }, { "label": "-1σ", "weight": 0.3333, "value": "-1sigma" } ] } },
+                        { "label": "Strasser", "weight": 0.25, "value": "strasser", "node": { "parameter": "aleatory_magnitude", "label": "Aleatory magnitude", "branches": [ { "label": "+1σ", "weight": 0.3333, "value": "+1sigma" }, { "label": "mean/median", "weight": 0.3334, "value": "mean_median" }, { "label": "-1σ", "weight": 0.3333, "value": "-1sigma" } ] } },
+                        { "label": "Murotani", "weight": 0.25, "value": "murotani", "node": { "parameter": "aleatory_magnitude", "label": "Aleatory magnitude", "branches": [ { "label": "+1σ", "weight": 0.3333, "value": "+1sigma" }, { "label": "mean/median", "weight": 0.3334, "value": "mean_median" }, { "label": "-1σ", "weight": 0.3333, "value": "-1sigma" } ] } },
+                        { "label": "Shaw", "weight": 0.25, "value": "shaw", "node": { "parameter": "aleatory_magnitude", "label": "Aleatory magnitude", "branches": [ { "label": "+1σ", "weight": 0.3333, "value": "+1sigma" }, { "label": "mean/median", "weight": 0.3334, "value": "mean_median" }, { "label": "-1σ", "weight": 0.3333, "value": "-1sigma" } ] } }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Cluster M8",
+                    "weight": 0.1,
+                    "value": "cluster_m8",
+                    "node": {
+                      "parameter": "num_events",
+                      "label": "Number of events",
+                      "branches": [
+                        { "label": "2 events", "weight": 0.25, "value": 2, "node": { "parameter": "scaling_relation", "label": "Scaling relation", "branches": [ { "label": "Papazachos", "weight": 0.25, "value": "papazachos" }, { "label": "Strasser", "weight": 0.25, "value": "strasser" }, { "label": "Murotani", "weight": 0.25, "value": "murotani" }, { "label": "Shaw", "weight": 0.25, "value": "shaw" } ] } },
+                        { "label": "3 events", "weight": 0.25, "value": 3 },
+                        { "label": "4 events", "weight": 0.25, "value": 4 },
+                        { "label": "5 events", "weight": 0.25, "value": 5 }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "label": "Partial",
+        "weight": 0.5,
+        "value": "partial",
+        "node": {
+          "parameter": "partial_type",
+          "label": "Partial rupture type",
+          "branches": [
+            {
+              "label": "Segmented",
+              "weight": 0.5,
+              "value": "segmented",
+              "node": {
+                "parameter": "segment",
+                "label": "Rupture segment",
+                "branches": [
+                  { "label": "B", "weight": 0.2, "value": "B", "node": { "parameter": "segment_size", "label": "Segment size", "branches": [ { "label": "Long", "weight": 0.3333, "value": "long", "node": { "parameter": "rupture_detail_ref", "label": "Rupture detail", "branches": [ { "label": "= rupture-detail subtree (reduced complexity)", "weight": 1, "value": "ref:rupture_detail" } ] } }, { "label": "Medium", "weight": 0.3334, "value": "medium" }, { "label": "Short", "weight": 0.3333, "value": "short" } ] } },
+                  { "label": "C", "weight": 0.2, "value": "C" },
+                  { "label": "C′", "weight": 0.2, "value": "Cprime" },
+                  { "label": "D", "weight": 0.2, "value": "D" },
+                  { "label": "F", "weight": 0.2, "value": "F" }
+                ]
+              }
+            },
+            {
+              "label": "Floating",
+              "weight": 0.5,
+              "value": "floating",
+              "node": {
+                "parameter": "floating_extent",
+                "label": "Floating extent",
+                "branches": [
+                  {
+                    "label": "Southern",
+                    "weight": 0.75,
+                    "value": "southern",
+                    "node": {
+                      "parameter": "b_value",
+                      "label": "b-value",
+                      "branches": [
+                        { "label": "b=1.0", "weight": 0.5, "value": 1.0, "node": { "parameter": "recurrence_rate", "label": "Recurrence rate (annual)", "branches": [ { "label": "GEA overall rate 0.0023/yr", "weight": 0.25, "value": 0.0023 }, { "label": "Nelson 1600 rate 0.00125/yr", "weight": 0.25, "value": 0.00125 }, { "label": "Nelson 1700 rate 4.35e-4/yr", "weight": 0.25, "value": 0.000435 }, { "label": "Onshore geologic rate 0.001/yr", "weight": 0.25, "value": 0.001 } ] } },
+                        { "label": "b=0.0", "weight": 0.5, "value": 0.0 }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Whole",
+                    "weight": 0.25,
+                    "value": "whole",
+                    "node": {
+                      "parameter": "b_value",
+                      "label": "b-value",
+                      "branches": [
+                        { "label": "b=1.0", "weight": 0.5, "value": 1.0 },
+                        { "label": "b=0.0", "weight": 0.5, "value": 0.0 }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
