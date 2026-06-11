@@ -1,0 +1,29 @@
+# Node / web app
+node_modules/
+web/dist/
+web/node_modules/
+*.tsbuildinfo
+.vite/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Logs / env
+*.log
+.env
+.env.local

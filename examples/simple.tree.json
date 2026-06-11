@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "metadata": {
+    "name": "Simple example tree",
+    "description": "Minimal two-level logic tree for smoke-testing load/render/save.",
+    "author": "Endor",
+    "created": "2026-06-11"
+  },
+  "tree": {
+    "parameter": "source_zone",
+    "label": "Source zone",
+    "branches": [
+      {
+        "label": "Full margin rupture",
+        "weight": 0.6,
+        "value": "full",
+        "node": {
+          "parameter": "scaling_relation",
+          "label": "Scaling relation",
+          "branches": [
+            { "label": "Strasser", "weight": 0.5, "value": "strasser" },
+            { "label": "Murotani", "weight": 0.5, "value": "murotani" }
+          ]
+        }
+      },
+      {
+        "label": "Partial rupture",
+        "weight": 0.4,
+        "value": "partial"
+      }
+    ]
+  }
+}

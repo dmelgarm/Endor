@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyendor"
+version = "0.1.0"
+description = "Python companion for Endor PTHA logic trees"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{ name = "Diego Melgar" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["endor*"]

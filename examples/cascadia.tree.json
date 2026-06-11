@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "1.0",
+  "metadata": {
+    "name": "Cascadia PTHA (illustrative)",
+    "description": "A multi-level subduction-zone logic tree illustrating realistic depth and branching. Values are illustrative, not authoritative.",
+    "author": "Endor",
+    "created": "2026-06-11",
+    "tags": ["subduction", "cascadia", "example"]
+  },
+  "tree": {
+    "parameter": "source_geometry",
+    "label": "Source geometry",
+    "branches": [
+      {
+        "label": "Full margin rupture",
+        "weight": 0.5,
+        "value": "full",
+        "node": {
+          "parameter": "mmax",
+          "label": "Maximum magnitude",
+          "branches": [
+            {
+              "label": "Mw 9.0",
+              "weight": 0.3,
+              "value": 9.0,
+              "node": {
+                "parameter": "scaling_relation",
+                "label": "Scaling relation",
+                "branches": [
+                  {
+                    "label": "Strasser (2010)",
+                    "weight": 0.5,
+                    "value": "strasser2010",
+                    "node": {
+                      "parameter": "rigidity",
+                      "label": "Rigidity",
+                      "branches": [
+                        { "label": "30 GPa", "weight": 0.5, "value": 30 },
+                        { "label": "50 GPa", "weight": 0.5, "value": 50 }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Murotani (2013)",
+                    "weight": 0.5,
+                    "value": "murotani2013",
+                    "node": {
+                      "parameter": "rigidity",
+                      "label": "Rigidity",
+                      "branches": [
+                        { "label": "30 GPa", "weight": 0.5, "value": 30 },
+                        { "label": "50 GPa", "weight": 0.5, "value": 50 }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "label": "Mw 9.2",
+              "weight": 0.5,
+              "value": 9.2,
+              "node": {
+                "parameter": "scaling_relation",
+                "label": "Scaling relation",
+                "branches": [
+                  { "label": "Strasser (2010)", "weight": 0.5, "value": "strasser2010" },
+                  { "label": "Murotani (2013)", "weight": 0.5, "value": "murotani2013" }
+                ]
+              }
+            },
+            {
+              "label": "Mw 9.4",
+              "weight": 0.2,
+              "value": 9.4
+            }
+          ]
+        }
+      },
+      {
+        "label": "Segmented rupture",
+        "weight": 0.5,
+        "value": "segmented",
+        "node": {
+          "parameter": "segmentation_model",
+          "label": "Segmentation model",
+          "branches": [
+            {
+              "label": "Northern + Southern",
+              "weight": 0.6,
+              "value": "north_south",
+              "node": {
+                "parameter": "recurrence",
+                "label": "Recurrence model",
+                "branches": [
+                  { "label": "Characteristic", "weight": 0.6, "value": "characteristic" },
+                  { "label": "Gutenberg-Richter", "weight": 0.4, "value": "gutenberg_richter" }
+                ]
+              }
+            },
+            {
+              "label": "Three segments",
+              "weight": 0.4,
+              "value": "three_segment",
+              "node": {
+                "parameter": "recurrence",
+                "label": "Recurrence model",
+                "branches": [
+                  { "label": "Characteristic", "weight": 0.6, "value": "characteristic" },
+                  { "label": "Gutenberg-Richter", "weight": 0.4, "value": "gutenberg_richter" }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
