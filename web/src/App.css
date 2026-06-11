@@ -8,6 +8,8 @@
   --leaf: #ecfeff;
   --bad: #b91c1c;
   --good: #15803d;
+  --name: #6d28d9; /* branch / parameter name */
+  --weight: #b45309; /* branch weight value */
 }
 
 * {
@@ -193,6 +195,7 @@ dd {
 }
 .node-title {
   font-weight: 600;
+  color: var(--name);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -201,6 +204,10 @@ dd {
   font-size: 11px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+}
+.weight {
+  color: var(--weight);
+  font-weight: 600;
 }
 .collapse-btn {
   position: absolute;

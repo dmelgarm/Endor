@@ -13,7 +13,7 @@ export function BranchPointNode({ data }: NodeProps) {
 
   return (
     <div className={`node branch-point${d.collapsed ? " collapsed" : ""}`}>
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
       <div className="node-title">{d.label ?? d.parameter}</div>
       <div className="node-sub">{d.parameter}</div>
       <button
@@ -26,7 +26,7 @@ export function BranchPointNode({ data }: NodeProps) {
       >
         {d.collapsed ? `+${d.leafCount}` : "–"}
       </button>
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={Position.Right} />
     </div>
   );
 }
@@ -36,9 +36,11 @@ export function LeafNode({ data }: NodeProps) {
   const value = d.value === undefined ? "" : String(d.value);
   return (
     <div className="node leaf">
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
       <div className="node-title">{d.label ?? (value || "leaf")}</div>
-      <div className="node-sub">w = {d.cumulativeWeight.toPrecision(3)}</div>
+      <div className="node-sub">
+        w = <span className="weight">{d.cumulativeWeight.toPrecision(3)}</span>
+      </div>
     </div>
   );
 }

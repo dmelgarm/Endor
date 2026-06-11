@@ -49,8 +49,11 @@ export function TreeCanvas() {
         id: e.id,
         source: e.source,
         target: e.target,
+        // smoothstep routes cleanly between Left/Right handles in the LR layout
+        // and seats the weight label on a horizontal segment.
+        type: "smoothstep",
         label: e.label,
-        labelStyle: { fontSize: 11 },
+        labelStyle: { fontSize: 11, fill: "#b45309", fontWeight: 600 },
         labelBgPadding: [4, 2] as [number, number],
         labelBgStyle: { fill: "#f5f5f4" },
       })),
