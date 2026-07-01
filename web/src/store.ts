@@ -21,6 +21,7 @@ interface EndorState {
   collapsed: Set<string>;
   viewDepth: number; // current "expand to depth" level
   treeDepth: number; // deepest branch point in the loaded tree
+  focus: string | null; // subtree shown in isolation; null = whole tree
   selected: string | null; // selected branch-point node path
   dirty: boolean;
   graph: Graph;
@@ -34,6 +35,7 @@ interface EndorState {
   expandAll: () => void;
   collapseAll: () => void;
   setViewDepth: (depth: number) => void;
+  setFocus: (path: string | null) => void;
   select: (path: string | null) => void;
 
   // Editing — each applies a pure edit to the current tree, re-derives, marks dirty.
@@ -54,12 +56,25 @@ const EMPTY_GRAPH: Graph = { nodes: [], edges: [] };
 const AUTO_COLLAPSE_LEAVES = 60;
 const DEFAULT_COLLAPSED_DEPTH = 2;
 
-/** Recompute the laid-out graph and validation from the current tree + collapse set. */
-function derive(tree: LogicTreeFile | null, collapsed: Set<string>) {
-  if (!tree) return { graph: EMPTY_GRAPH, issues: [] as ValidationIssue[] };
+/**
+ * Recompute the laid-out graph and validation from the current tree, collapse
+ * set, and focus. Returns the *effective* focus: a stale path (e.g. one an edit
+ * just deleted) is cleared so callers can drop it from state automatically.
+ */
+function derive(tree: LogicTreeFile | null, collapsed: Set<string>, focus: string | null) {
+  if (!tree) return { graph: EMPTY_GRAPH, issues: [] as ValidationIssue[], focus: null };
+  let effectiveFocus = focus === "root" ? null : focus;
+  if (effectiveFocus) {
+    try {
+      edit.resolveNode(tree.tree, effectiveFocus);
+    } catch {
+      effectiveFocus = null;
+    }
+  }
   return {
-    graph: layout(buildGraph(tree.tree, collapsed)),
+    graph: layout(buildGraph(tree.tree, collapsed, effectiveFocus ?? "root")),
     issues: validateTree(tree.tree),
+    focus: effectiveFocus,
   };
 }
 
@@ -71,7 +86,7 @@ export const useStore = create<EndorState>((set, get) => {
     const nextRoot = fn(tree.tree);
     if (nextRoot === tree.tree) return; // no-op edit (e.g. move out of bounds)
     const nextTree = { ...tree, tree: nextRoot };
-    set({ tree: nextTree, dirty: true, ...derive(nextTree, collapsed) });
+    set({ tree: nextTree, dirty: true, ...derive(nextTree, collapsed, get().focus) });
   };
 
   return {
@@ -81,6 +96,7 @@ export const useStore = create<EndorState>((set, get) => {
     collapsed: new Set(),
     viewDepth: 0,
     treeDepth: 0,
+    focus: null,
     selected: null,
     dirty: false,
     graph: EMPTY_GRAPH,
@@ -104,7 +120,7 @@ export const useStore = create<EndorState>((set, get) => {
         selected: null,
         dirty: false,
         error: null,
-        ...derive(loaded.tree, collapsed),
+        ...derive(loaded.tree, collapsed, null),
       });
     },
 
@@ -132,27 +148,45 @@ export const useStore = create<EndorState>((set, get) => {
       const collapsed = new Set(get().collapsed);
       if (collapsed.has(path)) collapsed.delete(path);
       else collapsed.add(path);
-      set({ collapsed, ...derive(get().tree, collapsed) });
+      set({ collapsed, ...derive(get().tree, collapsed, get().focus) });
     },
 
     expandAll: () => {
       const collapsed = new Set<string>();
-      set({ collapsed, viewDepth: get().treeDepth + 1, ...derive(get().tree, collapsed) });
+      set({
+        collapsed,
+        viewDepth: get().treeDepth + 1,
+        ...derive(get().tree, collapsed, get().focus),
+      });
     },
 
     collapseAll: () => {
-      const { tree } = get();
+      const { tree, focus } = get();
       if (!tree) return;
       const collapsed = collapsedForDepth(tree.tree, 0);
-      set({ collapsed, viewDepth: 0, ...derive(tree, collapsed) });
+      set({ collapsed, viewDepth: 0, ...derive(tree, collapsed, focus) });
     },
 
     setViewDepth: (depth) => {
-      const { tree, treeDepth } = get();
+      const { tree, treeDepth, focus } = get();
       if (!tree) return;
       const d = Math.max(0, Math.min(depth, treeDepth + 1));
       const collapsed = collapsedForDepth(tree.tree, d);
-      set({ collapsed, viewDepth: d, ...derive(tree, collapsed) });
+      set({ collapsed, viewDepth: d, ...derive(tree, collapsed, focus) });
+    },
+
+    setFocus: (path) => {
+      const { tree, collapsed } = get();
+      if (!tree) return;
+      const focus = path && path !== "root" ? path : null;
+      // Make sure the focused node itself is expanded, so it isn't shown as a
+      // lone collapsed badge.
+      let nextCollapsed = collapsed;
+      if (focus && collapsed.has(focus)) {
+        nextCollapsed = new Set(collapsed);
+        nextCollapsed.delete(focus);
+      }
+      set({ collapsed: nextCollapsed, ...derive(tree, nextCollapsed, focus) });
     },
 
     select: (path) => set({ selected: path }),

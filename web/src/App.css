@@ -118,6 +118,34 @@ body {
   color: var(--muted);
 }
 
+.focus-bar {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 5px 8px 5px 14px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.focus-bar button {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.focus-bar button:hover {
+  border-color: var(--accent);
+}
+
 .sidebar {
   width: 300px;
   border-left: 1px solid var(--border);

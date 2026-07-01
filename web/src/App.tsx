@@ -4,6 +4,7 @@ import { Inspector } from "./canvas/Inspector";
 import { useStore } from "./store";
 import { parseLogicTree } from "./schema/logicTree";
 import { countRealizations } from "./ops/operations";
+import { resolveNode } from "./model/edit";
 import "./App.css";
 
 export default function App() {
@@ -15,11 +16,13 @@ export default function App() {
     dirty,
     viewDepth,
     treeDepth,
+    focus,
     open,
     save,
     expandAll,
     collapseAll,
     setViewDepth,
+    setFocus,
     setTree,
   } = useStore();
 
@@ -27,6 +30,17 @@ export default function App() {
     () => (tree ? countRealizations(tree.tree) : 0),
     [tree],
   );
+
+  // Label of the focused subtree, if any (for the breadcrumb bar).
+  const focusLabel = useMemo(() => {
+    if (!tree || !focus) return null;
+    try {
+      const n = resolveNode(tree.tree, focus);
+      return n.label ?? n.parameter;
+    } catch {
+      return null;
+    }
+  }, [tree, focus]);
 
   async function loadExample() {
     const res = await fetch(`${import.meta.env.BASE_URL}cascadia.tree.json`);
@@ -76,6 +90,14 @@ export default function App() {
 
       <main className="content">
         <div className="canvas-wrap">
+          {tree && focusLabel && (
+            <div className="focus-bar">
+              <span>
+                Viewing only: <strong>{focusLabel}</strong>
+              </span>
+              <button onClick={() => setFocus(null)}>Show full tree</button>
+            </div>
+          )}
           {tree ? (
             <TreeCanvas />
           ) : (

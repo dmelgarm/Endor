@@ -93,7 +93,34 @@ function branchLabel(branch: BranchInput, index: number): string {
   return branch.label ?? (branch.value != null ? String(branch.value) : `#${index}`);
 }
 
-export function buildGraph(root: NodeInput, collapsed: ReadonlySet<string>): Graph {
+/** Resolve a node path to its node plus the cumulative weight from the true root. */
+function resolveWithWeight(
+  root: NodeInput,
+  path: string,
+): { node: NodeInput; cumulative: number } | null {
+  const segments = path.split("/").slice(1); // drop "root"
+  let node = root;
+  let cumulative = 1;
+  for (const seg of segments) {
+    const branch = node.branches[Number(seg)];
+    if (!branch?.node) return null; // stale path (e.g. after an edit)
+    cumulative *= branch.weight;
+    node = branch.node;
+  }
+  return { node, cumulative };
+}
+
+/**
+ * Build the render graph. When `focusPath` names a subtree (other than "root"),
+ * only that subtree is rendered, but paths stay absolute and leaf cumulative
+ * weights still include the branches above the focus — so hazard weights read
+ * the same whether or not you're zoomed in.
+ */
+export function buildGraph(
+  root: NodeInput,
+  collapsed: ReadonlySet<string>,
+  focusPath = "root",
+): Graph {
   const nodes: FlowNode[] = [];
   const edges: FlowEdge[] = [];
 
@@ -148,6 +175,13 @@ export function buildGraph(root: NodeInput, collapsed: ReadonlySet<string>): Gra
     });
   };
 
-  visit(root, "root", 1);
+  if (focusPath === "root") {
+    visit(root, "root", 1);
+  } else {
+    const resolved = resolveWithWeight(root, focusPath);
+    // Fall back to the full tree if the focus path no longer resolves.
+    if (resolved) visit(resolved.node, focusPath, resolved.cumulative);
+    else visit(root, "root", 1);
+  }
   return { nodes, edges };
 }

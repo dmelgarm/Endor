@@ -19,6 +19,7 @@ function coerceValue(text: string): string | number {
 export function Inspector() {
   const tree = useStore((s) => s.tree);
   const selected = useStore((s) => s.selected);
+  const focus = useStore((s) => s.focus);
   const {
     patchBranch,
     patchNode,
@@ -29,6 +30,7 @@ export function Inspector() {
     removeChildNode,
     normalizeWeights,
     select,
+    setFocus,
   } = useStore();
 
   if (!tree || !selected) {
@@ -139,6 +141,13 @@ export function Inspector() {
         <button onClick={() => normalizeWeights(selected)} disabled={sumOk}>
           Normalize to 1
         </button>
+        {focus === selected ? (
+          <button onClick={() => setFocus(null)}>Show full tree</button>
+        ) : (
+          <button onClick={() => setFocus(selected)} disabled={selected === "root"}>
+            View only this branch
+          </button>
+        )}
       </div>
     </div>
   );
