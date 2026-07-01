@@ -7,7 +7,21 @@ import { countRealizations } from "./ops/operations";
 import "./App.css";
 
 export default function App() {
-  const { tree, fileName, issues, error, dirty, open, save, expandAll, setTree } = useStore();
+  const {
+    tree,
+    fileName,
+    issues,
+    error,
+    dirty,
+    viewDepth,
+    treeDepth,
+    open,
+    save,
+    expandAll,
+    collapseAll,
+    setViewDepth,
+    setTree,
+  } = useStore();
 
   const realizations = useMemo(
     () => (tree ? countRealizations(tree.tree) : 0),
@@ -28,9 +42,31 @@ export default function App() {
         <button onClick={save} disabled={!tree}>
           Save{dirty ? " •" : ""}
         </button>
-        <button onClick={expandAll} disabled={!tree}>
+
+        <span className="divider" />
+
+        <button onClick={collapseAll} disabled={!tree} title="Collapse to root">
+          Collapse all
+        </button>
+        <button onClick={expandAll} disabled={!tree} title="Expand every branch">
           Expand all
         </button>
+        <span className="depth-control" title="Expand the tree down to this depth">
+          Depth
+          <button onClick={() => setViewDepth(viewDepth - 1)} disabled={!tree || viewDepth <= 0}>
+            –
+          </button>
+          <span className="depth-value">{tree ? Math.min(viewDepth, treeDepth + 1) : "–"}</span>
+          <button
+            onClick={() => setViewDepth(viewDepth + 1)}
+            disabled={!tree || viewDepth > treeDepth}
+          >
+            +
+          </button>
+        </span>
+
+        <span className="divider" />
+
         <button onClick={loadExample}>Load example</button>
         <span className="filename">
           {tree ? fileName : "no tree loaded"}

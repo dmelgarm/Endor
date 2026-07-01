@@ -61,6 +61,34 @@ export function countLeaves(node: NodeInput): number {
   return total;
 }
 
+export interface NodeRef {
+  path: string;
+  depth: number; // root = 0
+}
+
+/** Every branch-point path in the tree with its depth (used for collapse-to-depth). */
+export function allNodePaths(root: NodeInput): NodeRef[] {
+  const out: NodeRef[] = [];
+  const visit = (node: NodeInput, path: string, depth: number): void => {
+    out.push({ path, depth });
+    node.branches.forEach((b, i) => {
+      if (b.node) visit(b.node, `${path}/${i}`, depth + 1);
+    });
+  };
+  visit(root, "root", 0);
+  return out;
+}
+
+/** Deepest branch-point depth in the tree (root = 0). */
+export function maxDepth(root: NodeInput): number {
+  return allNodePaths(root).reduce((m, n) => Math.max(m, n.depth), 0);
+}
+
+/** Set of node paths to collapse so that only depths < `depth` stay expanded. */
+export function collapsedForDepth(root: NodeInput, depth: number): Set<string> {
+  return new Set(allNodePaths(root).filter((n) => n.depth >= depth).map((n) => n.path));
+}
+
 function branchLabel(branch: BranchInput, index: number): string {
   return branch.label ?? (branch.value != null ? String(branch.value) : `#${index}`);
 }
