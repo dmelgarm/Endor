@@ -24,6 +24,25 @@
       },
       "additionalProperties": true
     },
+    "naming": {
+      "type": "object",
+      "description": "How to assemble a rupture name from the `code`s along a root-to-leaf path.",
+      "additionalProperties": false,
+      "properties": {
+        "separator": {
+          "type": "string",
+          "description": "Joins consecutive branch codes. Defaults to '-'."
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Prepended to every rupture name."
+        },
+        "suffix": {
+          "type": "string",
+          "description": "Appended to every rupture name, e.g. '-result_trimmed'."
+        }
+      }
+    },
     "tree": { "$ref": "#/$defs/node" }
   },
   "$defs": {
@@ -66,6 +85,10 @@
         "label": {
           "type": "string",
           "description": "Human-readable name for this alternative."
+        },
+        "code": {
+          "type": "string",
+          "description": "Token for this choice in the rupture-naming convention. The rupture name of a leaf is the ordered join of the `code`s along its root-to-leaf path. Branches without a code contribute nothing to the name."
         },
         "weight": {
           "type": "number",

@@ -21,6 +21,7 @@ class Branch:
     weight: float
     value: Any = None
     label: str | None = None
+    code: str | None = None
     id: str | None = None
     node: "Node | None" = None
 
@@ -35,6 +36,7 @@ class Branch:
             weight=d["weight"],
             value=d.get("value"),
             label=d.get("label"),
+            code=d.get("code"),
             id=d.get("id"),
             node=Node.from_dict(child) if child is not None else None,
         )
@@ -45,6 +47,8 @@ class Branch:
             out["id"] = self.id
         if self.label is not None:
             out["label"] = self.label
+        if self.code is not None:
+            out["code"] = self.code
         out["weight"] = self.weight
         if self.value is not None:
             out["value"] = self.value
@@ -89,9 +93,10 @@ class Realization:
     weight: float
     parameters: dict[str, Any]
     path: list[str]  # branch labels (or ids) traversed, root first
+    name: str | None = None  # rupture name derived from branch codes, if any
 
     def __repr__(self) -> str:  # pragma: no cover - convenience only
-        return f"Realization(weight={self.weight:.6g}, parameters={self.parameters})"
+        return f"Realization(weight={self.weight:.6g}, name={self.name!r})"
 
 
 @dataclass
@@ -100,6 +105,7 @@ class LogicTree:
 
     tree: Node
     metadata: dict[str, Any] = field(default_factory=dict)
+    naming: dict[str, Any] = field(default_factory=dict)
     schema_version: str = "1.0"
 
     # ---- I/O -------------------------------------------------------------
@@ -108,6 +114,7 @@ class LogicTree:
         return cls(
             tree=Node.from_dict(d["tree"]),
             metadata=d.get("metadata", {}),
+            naming=d.get("naming", {}),
             schema_version=d.get("schemaVersion", "1.0"),
         )
 
@@ -115,6 +122,8 @@ class LogicTree:
         out: dict[str, Any] = {"schemaVersion": self.schema_version}
         if self.metadata:
             out["metadata"] = self.metadata
+        if self.naming:
+            out["naming"] = self.naming
         out["tree"] = self.tree.to_dict()
         return out
 
@@ -134,8 +143,10 @@ class LogicTree:
 
         The number of realizations is the product of branch counts along each
         path, so this is a generator — a deep tree can produce a very large set.
+        Each realization carries the rupture ``name`` derived from branch codes
+        (or ``None`` when no code is present on its path).
         """
-        yield from _walk(self.tree, weight=1.0, parameters={}, path=[])
+        yield from _walk(self.tree, 1.0, {}, [], [], self.naming)
 
     def count_realizations(self) -> int:
         """Total number of leaf paths without materializing them."""
@@ -146,17 +157,31 @@ def _key(branch: Branch, index: int) -> str:
     return branch.label or branch.id or f"branch[{index}]"
 
 
+def _format_name(codes: list[str], naming: dict[str, Any]) -> str | None:
+    """Join branch codes into a rupture name, or None when there are no codes."""
+    if not codes:
+        return None
+    sep = naming.get("separator", "-")
+    return naming.get("prefix", "") + sep.join(codes) + naming.get("suffix", "")
+
+
 def _walk(
-    node: Node, weight: float, parameters: dict[str, Any], path: list[str]
+    node: Node,
+    weight: float,
+    parameters: dict[str, Any],
+    path: list[str],
+    codes: list[str],
+    naming: dict[str, Any],
 ) -> Iterator[Realization]:
     for i, branch in enumerate(node.branches):
         w = weight * branch.weight
         params = {**parameters, node.parameter: branch.value}
         p = path + [_key(branch, i)]
+        c = codes + [branch.code] if branch.code else codes
         if branch.is_leaf:
-            yield Realization(weight=w, parameters=params, path=p)
+            yield Realization(weight=w, parameters=params, path=p, name=_format_name(c, naming))
         else:
-            yield from _walk(branch.node, w, params, p)
+            yield from _walk(branch.node, w, params, p, c, naming)
 
 
 def _count(node: Node) -> int:

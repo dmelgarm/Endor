@@ -5,6 +5,7 @@ Reads and writes the same JSON logic-tree format as the Endor web app
 straight into a tsunami-hazard pipeline and vice versa.
 """
 
+from .importers import from_name_csv, group_sources
 from .tree import Branch, LogicTree, Node, Realization
 from .validate import ValidationIssue, validate
 
@@ -15,4 +16,6 @@ __all__ = [
     "Realization",
     "validate",
     "ValidationIssue",
+    "from_name_csv",
+    "group_sources",
 ]

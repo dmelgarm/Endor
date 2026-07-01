@@ -13,12 +13,24 @@ optional child node. A branch with no child is a leaf. One root→leaf path is a
 **realization** whose weight is the product of its branch weights. Sibling weights
 must sum to 1 at every branch point.
 
+## Rupture names
+
+A branch may also carry a short `code`, and the tree a top-level `naming` block
+(`separator`, optional `prefix`/`suffix`). A leaf's **rupture name** is then the
+ordered join of the `code`s along its root→leaf path — e.g. `DOGAMI-Aexp-B-D-DnS-L-AC`.
+This keeps the naming convention *in the tree* (each choice owns its token), so names
+stay correct as you edit and derive automatically in the viewer and in exports. Codes
+are the natural fit for conventions like DOGAMI O-24-11, where the same value maps to
+different tokens depending on the path. The viewer shows the derived name on each leaf,
+and the Inspector previews it live as you type codes.
+
 ## Layout
 
 ```
 schema/logic-tree.schema.json   JSON Schema — the single source of truth for the format
 examples/                       simple.tree.json, cascadia.tree.json (illustrative),
-                                cascadia_dnr.tree.json (~2,971-leaf real-world tree)
+                                cascadia_dnr.tree.json (~2,971-leaf hand-drawn tree),
+                                cascadia_sources.tree.json (3,502 ruptures, CSV-derived)
 web/                            Vite + React + TypeScript app
 pyendor/                        Python companion package (same JSON format)
 ```
@@ -71,8 +83,30 @@ Reads and writes the identical JSON format, so trees authored in the GUI drop st
 into a tsunami-hazard pipeline.
 
 - `endor.LogicTree`: `load` / `save`, `realizations()` (generator of weighted root→leaf
-  paths), `count_realizations()`.
+  paths, each with its derived rupture `name`), `count_realizations()`.
 - `endor.validate`: checks sibling weight sums.
+- `endor.from_name_csv`: build an exact tree from a CSV of coded rupture names. Each
+  token becomes a branch `code`; conditional weights are reconstructed from the CSV
+  weights (siblings sum to 1); extra columns (Mw, Mo, …) ride on each leaf's `value`.
+  Re-deriving each leaf's name reproduces its CSV name exactly.
+- `endor.group_sources`: nest flat top-level codes into named groups (e.g. Whole
+  margin / Partial), re-normalizing within each group; unlisted codes are parked under
+  an "others" node at a given weight (default 0).
+
+### Import a CSV of rupture names
+
+```python
+from endor import from_name_csv, group_sources
+
+flat = from_name_csv("source_weights_Mw_Mo.csv")   # columns: Run_Name, Weight, Mw, Mo
+tree = group_sources(flat, [
+    {"label": "Whole margin", "parameter": "slip_model", "weight": 0.5,
+     "members": ["DOGAMI", "USGS", "USGSclusters"]},
+    {"label": "Partial", "parameter": "rupture_style", "weight": 0.5,
+     "members": ["Segmented", "Floating"]},
+])
+tree.save("cascadia_sources.tree.json")
+```
 
 ### Test
 
@@ -91,6 +125,9 @@ cd pyendor && PYTHONPATH=. python3 -m pytest -q
   stepper, collapsed leaf-count badges, and focus mode. See the prioritized backlog in
   `CLAUDE.md` (skip relayout on non-structural edits, search/jump, cumulative-weight
   badges, epistemic-vs-aleatory node kind).
+- **Rupture names (done):** per-branch `code` + tree `naming`; derived rupture names
+  shown on leaves and previewed live in the Inspector. Python `from_name_csv` /
+  `group_sources` build an exact tree from a coded-name CSV (see `cascadia_sources.tree.json`).
 - **Phase 3 (planned):** enumerate-paths panel in the UI + export weighted realizations
   (CSV/JSON). Enumeration logic already exists in `web/src/ops/operations.ts`
   (`enumerate`) and `pyendor/endor/tree.py` (`realizations`).

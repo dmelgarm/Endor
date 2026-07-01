@@ -1,5 +1,6 @@
 import { useStore } from "../store";
-import { resolveNode } from "../model/edit";
+import { resolveNode, ancestorCodes } from "../model/edit";
+import { formatRuptureName } from "../model/graph";
 import { WEIGHT_TOL } from "../ops/operations";
 
 /**
@@ -48,6 +49,9 @@ export function Inspector() {
   const total = node.branches.reduce((s, b) => s + b.weight, 0);
   const sumOk = Math.abs(total - 1) <= WEIGHT_TOL;
 
+  // Codes on the path down to this node, for previewing derived rupture names.
+  const prefixCodes = ancestorCodes(tree.tree, selected);
+
   return (
     <div className="inspector">
       <label className="field">
@@ -82,6 +86,13 @@ export function Inspector() {
                   value={b.label ?? ""}
                   placeholder="label"
                   onChange={(e) => patchBranch(selected, i, { label: e.target.value })}
+                />
+                <input
+                  className="branch-code"
+                  value={b.code ?? ""}
+                  placeholder="code"
+                  title="Rupture-name token for this choice"
+                  onChange={(e) => patchBranch(selected, i, { code: e.target.value })}
                 />
                 <input
                   className="branch-weight"
@@ -131,6 +142,14 @@ export function Inspector() {
                   </button>
                 </div>
               </div>
+              {!b.node &&
+                (() => {
+                  const name = formatRuptureName(
+                    b.code ? [...prefixCodes, b.code] : prefixCodes,
+                    tree.naming,
+                  );
+                  return name ? <div className="branch-rupture">{name}</div> : null;
+                })()}
             </li>
           );
         })}

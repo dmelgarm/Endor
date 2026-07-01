@@ -34,8 +34,22 @@ export function leafToNodePath(leafId: string): { nodePath: string; index: numbe
   return { nodePath, index };
 }
 
-type BranchPatch = Partial<Pick<BranchInput, "label" | "weight" | "value">>;
+type BranchPatch = Partial<Pick<BranchInput, "label" | "code" | "weight" | "value">>;
 type NodePatch = Partial<Pick<NodeInput, "parameter" | "label">>;
+
+/** Ordered `code`s on the branches leading from the root down to `nodePath`. */
+export function ancestorCodes(root: NodeInput, nodePath: string): string[] {
+  const segments = nodePath.split("/").slice(1); // drop "root"
+  const codes: string[] = [];
+  let node = root;
+  for (const seg of segments) {
+    const branch = node.branches[Number(seg)];
+    if (!branch?.node) break;
+    if (branch.code) codes.push(branch.code);
+    node = branch.node;
+  }
+  return codes;
+}
 
 export function patchBranch(
   root: NodeInput,

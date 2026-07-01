@@ -33,13 +33,21 @@ export function BranchPointNode({ data }: NodeProps) {
 
 export function LeafNode({ data }: NodeProps) {
   const d = data as unknown as LeafData;
-  const value = d.value === undefined ? "" : String(d.value);
+  const val = d.value;
+  const isObj = val !== null && typeof val === "object";
+  const primitive = val != null && !isObj ? String(val) : "";
+  // Leaves may carry structured attributes (e.g. { weight, Mw, Mo }).
+  const mw = isObj && "Mw" in (val as object) ? (val as { Mw?: unknown }).Mw : undefined;
+  const title = d.ruptureName ?? d.label ?? (primitive || "leaf");
   return (
     <div className="node leaf">
       <Handle type="target" position={Position.Left} />
-      <div className="node-title">{d.label ?? (value || "leaf")}</div>
+      <div className={`node-title${d.ruptureName ? " mono" : ""}`} title={title}>
+        {title}
+      </div>
       <div className="node-sub">
-        w = <span className="weight">{d.cumulativeWeight.toPrecision(3)}</span>
+        {mw !== undefined && <>Mw {Number(mw).toFixed(2)} · </>}w ={" "}
+        <span className="weight">{d.cumulativeWeight.toPrecision(3)}</span>
       </div>
     </div>
   );

@@ -247,6 +247,11 @@ dd {
   background: var(--leaf);
   border-color: #a5f3fc;
 }
+.node-title.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--accent);
+}
 .node-title {
   font-weight: 600;
   color: var(--name);
@@ -351,6 +356,18 @@ dd {
 }
 .branch-label {
   flex: 1;
+}
+.branch-code {
+  width: 56px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-align: center;
+}
+.branch-rupture {
+  margin-top: 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--accent);
+  word-break: break-all;
 }
 .branch-weight {
   width: 64px;

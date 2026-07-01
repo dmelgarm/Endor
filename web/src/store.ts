@@ -72,7 +72,7 @@ function derive(tree: LogicTreeFile | null, collapsed: Set<string>, focus: strin
     }
   }
   return {
-    graph: layout(buildGraph(tree.tree, collapsed, effectiveFocus ?? "root")),
+    graph: layout(buildGraph(tree.tree, collapsed, effectiveFocus ?? "root", tree.naming)),
     issues: validateTree(tree.tree),
     focus: effectiveFocus,
   };

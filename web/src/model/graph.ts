@@ -1,4 +1,4 @@
-import type { NodeInput, BranchInput } from "../schema/logicTree";
+import type { NodeInput, BranchInput, Naming } from "../schema/logicTree";
 
 /**
  * Derives a flat {nodes, edges} graph from the nested logic tree for React Flow
@@ -26,6 +26,7 @@ export interface LeafData {
   value: unknown;
   weight: number; // this branch's own weight
   cumulativeWeight: number; // product of weights from root to here
+  ruptureName?: string; // derived from the `code`s along the path
   path: string;
 }
 
@@ -93,21 +94,37 @@ function branchLabel(branch: BranchInput, index: number): string {
   return branch.label ?? (branch.value != null ? String(branch.value) : `#${index}`);
 }
 
-/** Resolve a node path to its node plus the cumulative weight from the true root. */
+/**
+ * Assemble a rupture name from the ordered `code`s along a root-to-leaf path.
+ * Returns undefined when no branch on the path carried a code (nothing to name).
+ */
+export function formatRuptureName(codes: string[], naming?: Naming): string | undefined {
+  if (codes.length === 0) return undefined;
+  const sep = naming?.separator ?? "-";
+  return (naming?.prefix ?? "") + codes.join(sep) + (naming?.suffix ?? "");
+}
+
+/**
+ * Resolve a node path to its node plus the cumulative weight and the ordered
+ * `code`s accumulated from the true root (so a focused view still derives full
+ * rupture names).
+ */
 function resolveWithWeight(
   root: NodeInput,
   path: string,
-): { node: NodeInput; cumulative: number } | null {
+): { node: NodeInput; cumulative: number; codes: string[] } | null {
   const segments = path.split("/").slice(1); // drop "root"
   let node = root;
   let cumulative = 1;
+  const codes: string[] = [];
   for (const seg of segments) {
     const branch = node.branches[Number(seg)];
     if (!branch?.node) return null; // stale path (e.g. after an edit)
     cumulative *= branch.weight;
+    if (branch.code) codes.push(branch.code);
     node = branch.node;
   }
-  return { node, cumulative };
+  return { node, cumulative, codes };
 }
 
 /**
@@ -120,11 +137,17 @@ export function buildGraph(
   root: NodeInput,
   collapsed: ReadonlySet<string>,
   focusPath = "root",
+  naming?: Naming,
 ): Graph {
   const nodes: FlowNode[] = [];
   const edges: FlowEdge[] = [];
 
-  const visit = (node: NodeInput, path: string, cumulative: number): void => {
+  const visit = (
+    node: NodeInput,
+    path: string,
+    cumulative: number,
+    codes: string[],
+  ): void => {
     const isCollapsed = collapsed.has(path);
     nodes.push({
       id: path,
@@ -147,6 +170,7 @@ export function buildGraph(
       const childPath = `${path}/${i}`;
       const w = branch.weight;
       const label = branchLabel(branch, i);
+      const childCodes = branch.code ? [...codes, branch.code] : codes;
       edges.push({
         id: `e:${childPath}`,
         source: path,
@@ -156,7 +180,7 @@ export function buildGraph(
       });
 
       if (branch.node) {
-        visit(branch.node, childPath, cumulative * w);
+        visit(branch.node, childPath, cumulative * w, childCodes);
       } else {
         nodes.push({
           id: `leaf:${childPath}`,
@@ -168,6 +192,7 @@ export function buildGraph(
             value: branch.value,
             weight: w,
             cumulativeWeight: cumulative * w,
+            ruptureName: formatRuptureName(childCodes, naming),
             path: childPath,
           },
         });
@@ -176,12 +201,12 @@ export function buildGraph(
   };
 
   if (focusPath === "root") {
-    visit(root, "root", 1);
+    visit(root, "root", 1, []);
   } else {
     const resolved = resolveWithWeight(root, focusPath);
     // Fall back to the full tree if the focus path no longer resolves.
-    if (resolved) visit(resolved.node, focusPath, resolved.cumulative);
-    else visit(root, "root", 1);
+    if (resolved) visit(resolved.node, focusPath, resolved.cumulative, resolved.codes);
+    else visit(root, "root", 1, []);
   }
   return { nodes, edges };
 }

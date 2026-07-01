@@ -11,6 +11,7 @@ import { z } from "zod";
 export type BranchInput = {
   id?: string;
   label?: string;
+  code?: string;
   weight: number;
   value?: unknown;
   node?: NodeInput;
@@ -27,11 +28,18 @@ export const branchSchema: z.ZodType<BranchInput> = z.lazy(() =>
   z.object({
     id: z.string().optional(),
     label: z.string().optional(),
+    code: z.string().optional(),
     weight: z.number().min(0).max(1),
     value: z.unknown().optional(),
     node: nodeSchema.optional(),
   }),
 );
+
+export const namingSchema = z.object({
+  separator: z.string().optional(),
+  prefix: z.string().optional(),
+  suffix: z.string().optional(),
+});
 
 export const nodeSchema: z.ZodType<NodeInput> = z.lazy(() =>
   z.object({
@@ -55,11 +63,13 @@ export const metadataSchema = z
 export const logicTreeSchema = z.object({
   schemaVersion: z.string().regex(/^\d+\.\d+$/),
   metadata: metadataSchema.optional(),
+  naming: namingSchema.optional(),
   tree: nodeSchema,
 });
 
 export type LogicTreeFile = z.infer<typeof logicTreeSchema>;
 export type Metadata = z.infer<typeof metadataSchema>;
+export type Naming = z.infer<typeof namingSchema>;
 
 export function parseLogicTree(data: unknown): LogicTreeFile {
   return logicTreeSchema.parse(data);
