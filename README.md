@@ -17,7 +17,8 @@ must sum to 1 at every branch point.
 
 ```
 schema/logic-tree.schema.json   JSON Schema — the single source of truth for the format
-examples/                       simple.tree.json, cascadia.tree.json (illustrative)
+examples/                       simple.tree.json, cascadia.tree.json (illustrative),
+                                cascadia_dnr.tree.json (~2,971-leaf real-world tree)
 web/                            Vite + React + TypeScript app
 pyendor/                        Python companion package (same JSON format)
 ```
@@ -36,6 +37,20 @@ backend, nothing leaves your machine.
 - **Editing:** the Inspector panel supports rename parameter/label; add/delete/reorder
   branches; edit weights & values; grow/prune subtrees; a live sum-to-1 check with
   "Normalize to 1"; selected-node highlight; dirty tracking; and save in place.
+
+### Navigating large trees
+
+Complex trees (thousands of leaf realizations) stay manageable:
+
+- **Smart loading** — trees above ~60 leaves open collapsed to depth 2, so you land on
+  the top-level choices instead of the whole tree. Smaller trees open fully expanded.
+- **Depth stepper** — expand the entire tree to an exact depth; **Collapse all** /
+  **Expand all** for the extremes. Per-node `+`/`–` badges collapse a single subtree and
+  show how many realizations are hidden beneath it.
+- **Focus mode ("view only this branch")** — double-click any branch point (or use the
+  Inspector button) to isolate its subtree; the view recenters on it and a breadcrumb
+  pill returns you to the full tree. Cumulative leaf weights still reflect the full path
+  from the true root, so hazard weights read correctly while zoomed in.
 
 ### Run
 
@@ -72,6 +87,10 @@ cd pyendor && PYTHONPATH=. python3 -m pytest -q
 - **Phase 2 (done):** interactive editing via the Inspector — rename, add/delete/reorder
   branches, edit weights & values, grow/prune subtrees, live sum-to-1 check +
   "Normalize to 1", selected-node highlight, dirty tracking, save in place.
+- **Big-tree ergonomics (done):** smart depth-based loading, collapse/expand all + depth
+  stepper, collapsed leaf-count badges, and focus mode. See the prioritized backlog in
+  `CLAUDE.md` (skip relayout on non-structural edits, search/jump, cumulative-weight
+  badges, epistemic-vs-aleatory node kind).
 - **Phase 3 (planned):** enumerate-paths panel in the UI + export weighted realizations
   (CSV/JSON). Enumeration logic already exists in `web/src/ops/operations.ts`
   (`enumerate`) and `pyendor/endor/tree.py` (`realizations`).

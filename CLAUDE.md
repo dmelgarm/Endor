@@ -53,7 +53,32 @@ pyendor/                        Python companion package (same JSON format)
   add/delete/reorder branches; edit weights & values; grow/prune subtrees; live
   sum-to-1 check + "Normalize to 1"; selected-node highlight; dirty tracking; save in place.
 
-## Next up
+## Big-tree ergonomics (partly done)
+
+Done: smart depth-based loading (big trees open collapsed to depth 2), collapse
+all / expand all + depth stepper, collapsed-node leaf-count badges, and focus mode
+("view only this branch" via double-click or the Inspector, with breadcrumb pill and
+fit-on-focus). Validated against `examples/cascadia_dnr.tree.json` (~2,971 leaves).
+
+Backlog (prioritized), for when big trees get used in anger:
+
+1. **Skip relayout on non-structural edits** — weight/label/value changes can't move
+   any node, but currently deep-clone + re-run dagre every keystroke. Only re-layout on
+   structural change (add/remove/collapse/focus). Small, high-impact perf win — do first.
+2. **Search / filter + jump** — find by parameter/label/value, auto-expand paths to
+   matches, highlight, step through hits. The #1 navigation gap at thousands of nodes.
+3. **Cumulative weight on collapsed nodes** — badges show leaf count; also show summed
+   subtree weight (how much hazard hides under a `+N` badge).
+4. **Epistemic vs aleatory node kind** — the source diagrams mark these (bold vs
+   italic); it's a real PTHA semantic we currently drop. Flagged as *correctness*, not
+   just ergonomics — do before real analysis use.
+5. Full clickable breadcrumb ancestry; sidebar text-outline navigator; weight-aware
+   edge/opacity encoding; path highlight on hover.
+6. Bulk ops (normalize-all, set-siblings-equal, apply template subtree); grouped
+   click-to-navigate validation list; persist collapse/focus/depth per file
+   (localStorage); React Flow `onlyRenderVisibleElements` + debounced layout.
+
+## Next up (phases)
 
 - **Phase 3 (not started):** enumerate-paths panel in the UI + export weighted
   realizations (CSV/JSON). The enumeration logic already exists in
@@ -61,7 +86,9 @@ pyendor/                        Python companion package (same JSON format)
   — Phase 3 is the UI + export on top.
 - **Phase 4 (not started):** load two trees side by side and diff structure + weights.
 - Later: `$ref`-style subtree reuse for the common PTHA case where the same
-  sub-logic-tree repeats under every source (keeps complex trees DRY).
+  sub-logic-tree repeats under every source (keeps complex trees DRY). Biggest
+  structural lever — edit-once + ~5× smaller files (the DNR tree is only ~3k leaves
+  because the along-strike detail is physically duplicated under all 5 DOGAMI sizes).
 
 ## Conventions
 
